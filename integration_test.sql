@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS `test` (
 INSERT INTO `test` (`test_id`, `test_string`, `test_int`, `test_time`) VALUES
 (1, 'foo', 1, '2000-01-01 00:00:00'),
 (2, 'bar', 2, '2001-02-03 04:05:06'),
-(3, 'foobar', 3, '0000-01-01 00:00:00');
+(3, 'foobar', 3, '0001-01-01 00:00:00');

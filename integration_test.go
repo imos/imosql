@@ -109,12 +109,19 @@ func TestRows(t *testing.T) {
 		t,
 		`[{"Id": 1, "String": "foo", "Int": 1, "Time": "2000-01-01T00:00:00Z"},
 		  {"Id": 2, "String": "bar", "Int": 2, "Time": "2001-02-03T04:05:06Z"},
-		  {"Id": 3, "String": "foobar", "Int": 3, "Time": "0000-01-01T00:00:00Z"}]`,
+		  {"Id": 3, "String": "foobar", "Int": 3, "Time": "0001-01-01T00:00:00Z"}]`,
+		rows)
+	db.RowsOrDie(&rows, "SELECT test_id, test_int FROM test ORDER BY test_id")
+	checkInterfaceEqual(
+		t,
+		`[{"Id": 1, "String": "", "Int": 1, "Time": "0001-01-01T00:00:00Z"},
+		  {"Id": 2, "String": "", "Int": 2, "Time": "0001-01-01T00:00:00Z"},
+		  {"Id": 3, "String": "", "Int": 3, "Time": "0001-01-01T00:00:00Z"}]`,
 		rows)
 	db.RowsOrDie(&rows, "SELECT * FROM test ORDER BY test_id DESC")
 	checkInterfaceEqual(
 		t,
-		`[{"Id": 3, "String": "foobar", "Int": 3, "Time": "0000-01-01T00:00:00Z"},
+		`[{"Id": 3, "String": "foobar", "Int": 3, "Time": "0001-01-01T00:00:00Z"},
 		  {"Id": 2, "String": "bar", "Int": 2, "Time": "2001-02-03T04:05:06Z"},
 		  {"Id": 1, "String": "foo", "Int": 1, "Time": "2000-01-01T00:00:00Z"}]`,
 		rows)
@@ -135,7 +142,7 @@ func TestRows(t *testing.T) {
 	db.RowOrDie(&row, "SELECT * FROM test ORDER BY test_id DESC")
 	checkInterfaceEqual(
 		t,
-		`{"Id": 3, "String": "foobar", "Int": 3, "Time": "0000-01-01T00:00:00Z"}`,
+		`{"Id": 3, "String": "foobar", "Int": 3, "Time": "0001-01-01T00:00:00Z"}`,
 		row)
 	db.RowOrDie(&row, "SELECT * FROM test WHERE test_id = ?", 2)
 	checkInterfaceEqual(
