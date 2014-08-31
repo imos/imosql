@@ -41,10 +41,10 @@ func GetMysql(target string) (connection *Connection, err error) {
 ////////////////////////////////////////////////////////////////////////////////
 
 func (c *Connection) Execute(query string, args ...interface{}) (result sql.Result, err error) {
+	Logf("running a SQL command: %s; %v.", query, args)
 	result, err = c.sql.Exec(query, args...)
-	Logf("running a SQL query: %s; %v.", query, args)
 	if err != nil {
-		err = Errorf("failed to run a SQL query: %s", err)
+		err = Errorf("failed to run a SQL command: %s", err)
 		return
 	}
 	if IsLogging() {
@@ -96,9 +96,10 @@ func (c *Connection) ChangeOrDie(query string, args ...interface{}) {
 ////////////////////////////////////////////////////////////////////////////////
 
 func (c *Connection) parseSingleValue(result interface{}, query string, args ...interface{}) error {
+	Logf("running a SQL query: %s; %v.", query, args)
 	rows, err := c.sql.Query(query, args...)
 	if err != nil {
-		return Errorf("failed to query: %s", err)
+		return Errorf("failed to run a SQL query: %s", err)
 	}
 	defer rows.Close()
 	if !rows.Next() {
@@ -159,26 +160,29 @@ func (c *Connection) TimeOrDie(query string, args ...interface{}) time.Time {
 // Multiple-value query functions
 ////////////////////////////////////////////////////////////////////////////////
 
-func (c *Connection) parseRows(rowsPtr interface{}, limit int, query string, args ...interface{}) (err error) {
+func (c *Connection) parseRows(rowsPtr interface{}, limit int, query string, args ...interface{}) error {
 	rowReader, err := NewRowReader(rowsPtr)
 	if err != nil {
-		return
+		return Errorf("failed to create a RowReader: %s", err)
 	}
+	Logf("running a SQL query: %s; %v.", query, args)
 	inputRows, err := c.sql.Query(query, args...)
 	if err != nil {
-		return
+		return Errorf("failed to run a SQL query: %s", err)
 	}
 	defer inputRows.Close()
 	columns, err := inputRows.Columns()
 	if err != nil {
-		return
+		return Errorf("failed to get columns: %s", err)
 	}
 	if len(columns) == 0 {
 		return Errorf("no columns.")
 	}
 	rowReader.SetColumns(columns)
-	err = rowReader.Read(inputRows, limit)
-	return
+	if err := rowReader.Read(inputRows, limit); err != nil {
+		return Errorf("failed to read rows: %s", err)
+	}
+	return nil
 }
 
 func (c *Connection) Rows(rowsPtr interface{}, query string, args ...interface{}) error {
