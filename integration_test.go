@@ -18,7 +18,7 @@ func openDatabase() {
 	}
 	if db == nil {
 		var err error = nil
-		db, err = imosql.GetMysql("root@/test")
+		db, err = imosql.GetMysql("root@/")
 		if err != nil {
 			panic(err)
 		}
