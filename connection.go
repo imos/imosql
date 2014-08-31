@@ -192,11 +192,13 @@ func (c *Connection) Row(rowPtr interface{}, query string, args ...interface{}) 
 			reflect.ValueOf(rowPtr).Type().Kind())
 	}
 	rowsPtr := reflect.New(reflect.SliceOf(reflect.ValueOf(rowPtr).Type().Elem()))
-	rowsPtr = reflect.Append(rowsPtr.Elem(), reflect.ValueOf(rowPtr).Elem())
 	if err := c.parseRows(rowsPtr.Interface(), 1, query, args...); err != nil {
 		return err
 	}
-	reflect.ValueOf(rowPtr).Elem().Set(rowsPtr.Index(0))
+	if rowsPtr.Elem().Len() != 1 {
+		return Errorf("# of results must be 1, but %d.", rowsPtr.Elem().Len())
+	}
+	reflect.ValueOf(rowPtr).Elem().Set(rowsPtr.Elem().Index(0))
 	return nil
 }
 
@@ -207,8 +209,8 @@ func (c *Connection) RowsOrDie(rows interface{}, query string, args ...interface
 	}
 }
 
-func (c *Connection) RowOrDie(row interface{}, query string, args ...interface{}) {
-	err := c.Row(row, query, args...)
+func (c *Connection) RowOrDie(rowPtr interface{}, query string, args ...interface{}) {
+	err := c.Row(rowPtr, query, args...)
 	if err != nil {
 		panic(err)
 	}
