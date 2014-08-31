@@ -27,6 +27,7 @@ func NewRowReader(rowsPtr interface{}) (rowReader *RowReader, err error) {
 		err = Errorf("rows must be a slice but %s.", rows.Kind().String())
 		return
 	}
+	rows.SetLen(0)
 	if rows.Type().Elem().Kind() != reflect.Struct {
 		err = Errorf(
 			"rows must be a slice of a struct but a slice of %s.",
