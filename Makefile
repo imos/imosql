@@ -6,7 +6,7 @@ test: build
 
 integration-test: build
 	mysql -u root -e 'CREATE DATABASE test;'
-	mysql -u root -D test < integration-test.sql
+	mysql -u root -D test < integration_test.sql
 	go test -v --enable_integration_test
 .PHONY: integration-test
 
