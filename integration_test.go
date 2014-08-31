@@ -1,20 +1,34 @@
 package imosql_test
 
 import (
-  imosql "./"
-  "testing"
-  "flag"
+	imosql "./"
+	"flag"
+	"testing"
 )
 
 var enableIntegrationTest = flag.Bool(
-  "enable_integration_test", false,
-  "Enables integration test using an actual MySQL server.")
+	"enable_integration_test", false,
+	"Enables integration test using an actual MySQL server.")
 
+var db *imosql.Connection = nil
 
-func TestCurrentTime(t *testing.T) {
-  if !*enableIntegrationTest {
-    return
-  }
-  _, _ = imosql.GetMysql("hoge")
-  return
+func openDatabase() {
+	if !*enableIntegrationTest {
+		return
+	}
+	if db == nil {
+		var err error = nil
+		db, err = imosql.GetMysql("root@/test")
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func TestConnect(t *testing.T) {
+	openDatabase()
+	if db == nil {
+		return
+	}
+	return
 }

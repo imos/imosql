@@ -1,9 +1,9 @@
 package imosql
 
 import (
-	"log"
 	"flag"
 	"fmt"
+	"log"
 	"strings"
 )
 

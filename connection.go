@@ -13,7 +13,6 @@ type Connection struct {
 }
 
 var connection *Connection = nil
-var mysqlDefaultTarget = ""
 var mysqlTarget = flag.String(
 	"mysql", "",
 	"MySQL database to connect "+

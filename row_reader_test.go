@@ -1,9 +1,9 @@
 package imosql_test
 
 import (
+	. "./"
 	"database/sql"
 	"encoding/json"
-	. "./"
 	"reflect"
 	"testing"
 	"time"
