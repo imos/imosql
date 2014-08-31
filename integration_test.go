@@ -118,4 +118,31 @@ func TestRows(t *testing.T) {
 		  {"Id": 2, "String": "bar", "Int": 2, "Time": "2001-02-03T04:05:06Z"},
 		  {"Id": 1, "String": "foo", "Int": 1, "Time": "2000-01-01T00:00:00Z"}]`,
 		rows)
+	db.RowsOrDie(&rows, "SELECT * FROM test WHERE test_id = ?", 2)
+	checkInterfaceEqual(
+		t,
+		`[{"Id": 2, "String": "bar", "Int": 2, "Time": "2001-02-03T04:05:06Z"}]`,
+		rows)
+	db.RowsOrDie(&rows, "SELECT * FROM test WHERE test_id = 4")
+	checkInterfaceEqual(t, "[]", rows)
+
+	row := TestRow{}
+	db.RowOrDie(&row, "SELECT * FROM test ORDER BY test_id")
+	checkInterfaceEqual(
+		t,
+		`{"Id": 1, "String": "foo", "Int": 1, "Time": "2000-01-01T00:00:00Z"}`,
+		row)
+	db.RowOrDie(&row, "SELECT * FROM test ORDER BY test_id DESC")
+	checkInterfaceEqual(
+		t,
+		`{"Id": 3, "String": "foobar", "Int": 3, "Time": "0000-01-01T00:00:00Z"}`,
+		row)
+	db.RowOrDie(&row, "SELECT * FROM test WHERE test_id = ?", 2)
+	checkInterfaceEqual(
+		t,
+		`{"Id": 2, "String": "bar", "Int": 2, "Time": "2001-02-03T04:05:06Z"}`,
+		row)
+	if db.Row(&row, "SELECT * FROM test WHERE test_id = 4") == nil {
+		t.Errorf("Row must return an error when there are no results.")
+	}
 }
