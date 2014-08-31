@@ -146,3 +146,8 @@ func TestRows(t *testing.T) {
 		t.Errorf("Row must return an error when there are no results.")
 	}
 }
+
+func TestLogging(t *testing.T) {
+	imosql.SetLogging(true)
+	TestRows(t)
+}
