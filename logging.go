@@ -34,7 +34,7 @@ func Logf(format string, a ...interface{}) {
 	return
 }
 
-func Errorf(format string, a ...interface{}) (err error) {
+func errorf(format string, a ...interface{}) (err error) {
 	err = fmt.Errorf(format, a...)
 	Log(err)
 	return

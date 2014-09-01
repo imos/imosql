@@ -26,11 +26,11 @@ func GetMysql(target string) (connection *Connection, err error) {
 	} else if target != "" {
 		connection.sql, err = sql.Open("mysql", target)
 	} else {
-		err = Errorf("mysql flag or a default target must be specified.")
+		err = errorf("mysql flag or a default target must be specified.")
 		return
 	}
 	if err != nil {
-		err = Errorf("failed to connect to the databse: %s", err)
+		err = errorf("failed to connect to the databse: %s", err)
 		return
 	}
 	return
@@ -40,11 +40,12 @@ func GetMysql(target string) (connection *Connection, err error) {
 // No-value query functions
 ////////////////////////////////////////////////////////////////////////////////
 
+// 
 func (c *Connection) Execute(query string, args ...interface{}) (result sql.Result, err error) {
 	Logf("running a SQL command: %s; %v.", query, args)
 	result, err = c.sql.Exec(query, args...)
 	if err != nil {
-		err = Errorf("failed to run a SQL command: %s", err)
+		err = errorf("failed to run a SQL command: %s", err)
 		return
 	}
 	if IsLogging() {
@@ -79,7 +80,7 @@ func (c *Connection) Change(query string, args ...interface{}) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return Errorf("no row was updated.")
+		return errorf("no row was updated.")
 	}
 	return nil
 }
@@ -99,20 +100,20 @@ func (c *Connection) parseSingleValue(result interface{}, query string, args ...
 	Logf("running a SQL query: %s; %v.", query, args)
 	rows, err := c.sql.Query(query, args...)
 	if err != nil {
-		return Errorf("failed to run a SQL query: %s", err)
+		return errorf("failed to run a SQL query: %s", err)
 	}
 	defer rows.Close()
 	if !rows.Next() {
-		return Errorf("no result.")
+		return errorf("no result.")
 	}
 	var stringResult string
 	err = rows.Scan(&stringResult)
 	if err != nil {
-		return Errorf("failed to scan one field: %s", err)
+		return errorf("failed to scan one field: %s", err)
 	}
 	err = parseField(reflect.ValueOf(result), stringResult)
 	if err != nil {
-		return Errorf("failed to parse a field: %s", err)
+		return errorf("failed to parse a field: %s", err)
 	}
 	return nil
 }
@@ -163,24 +164,24 @@ func (c *Connection) TimeOrDie(query string, args ...interface{}) time.Time {
 func (c *Connection) parseRows(rowsPtr interface{}, limit int, query string, args ...interface{}) error {
 	rowReader, err := NewRowReader(rowsPtr)
 	if err != nil {
-		return Errorf("failed to create a RowReader: %s", err)
+		return errorf("failed to create a RowReader: %s", err)
 	}
 	Logf("running a SQL query: %s; %v.", query, args)
 	inputRows, err := c.sql.Query(query, args...)
 	if err != nil {
-		return Errorf("failed to run a SQL query: %s", err)
+		return errorf("failed to run a SQL query: %s", err)
 	}
 	defer inputRows.Close()
 	columns, err := inputRows.Columns()
 	if err != nil {
-		return Errorf("failed to get columns: %s", err)
+		return errorf("failed to get columns: %s", err)
 	}
 	if len(columns) == 0 {
-		return Errorf("no columns.")
+		return errorf("no columns.")
 	}
 	rowReader.SetColumns(columns)
 	if err := rowReader.Read(inputRows, limit); err != nil {
-		return Errorf("failed to read rows: %s", err)
+		return errorf("failed to read rows: %s", err)
 	}
 	return nil
 }
@@ -191,7 +192,7 @@ func (c *Connection) Rows(rowsPtr interface{}, query string, args ...interface{}
 
 func (c *Connection) Row(rowPtr interface{}, query string, args ...interface{}) error {
 	if reflect.ValueOf(rowPtr).Type().Kind() != reflect.Ptr {
-		return Errorf(
+		return errorf(
 			"rowPtr must be a pointer, but %s.",
 			reflect.ValueOf(rowPtr).Type().Kind())
 	}
@@ -200,7 +201,7 @@ func (c *Connection) Row(rowPtr interface{}, query string, args ...interface{}) 
 		return err
 	}
 	if rowsPtr.Elem().Len() != 1 {
-		return Errorf("# of results must be 1, but %d.", rowsPtr.Elem().Len())
+		return errorf("# of results must be 1, but %d.", rowsPtr.Elem().Len())
 	}
 	reflect.ValueOf(rowPtr).Elem().Set(rowsPtr.Elem().Index(0))
 	return nil
