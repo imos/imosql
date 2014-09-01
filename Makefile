@@ -27,6 +27,9 @@ format:
 	gofmt -w ./
 .PHONY: format
 
+document:
+	godoc -http=:6060
+
 info:
 	@echo "GOPATH=$${GOPATH}"
 .PHONY: info
