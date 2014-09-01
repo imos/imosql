@@ -135,23 +135,29 @@ func TestRows(t *testing.T) {
 	checkInterfaceEqual(t, "[]", rows)
 
 	row := TestRow{}
-	db.RowOrDie(&row, "SELECT * FROM test ORDER BY test_id")
+	if !db.RowOrDie(&row, "SELECT * FROM test ORDER BY test_id") {
+		t.Fatalf("no result.")
+	}
 	checkInterfaceEqual(
 		t,
 		`{"Id": 1, "String": "foo", "Int": 1, "Time": "2000-01-01T00:00:00Z"}`,
 		row)
-	db.RowOrDie(&row, "SELECT * FROM test ORDER BY test_id DESC")
+	if !db.RowOrDie(&row, "SELECT * FROM test ORDER BY test_id DESC") {
+		t.Fatalf("no result.")
+	}
 	checkInterfaceEqual(
 		t,
 		`{"Id": 3, "String": "foobar", "Int": 3, "Time": "0001-01-01T00:00:00Z"}`,
 		row)
-	db.RowOrDie(&row, "SELECT * FROM test WHERE test_id = ?", 2)
+	if !db.RowOrDie(&row, "SELECT * FROM test WHERE test_id = ?", 2) {
+		t.Fatalf("no result.")
+	}
 	checkInterfaceEqual(
 		t,
 		`{"Id": 2, "String": "bar", "Int": 2, "Time": "2001-02-03T04:05:06Z"}`,
 		row)
-	if db.Row(&row, "SELECT * FROM test WHERE test_id = 4") == nil {
-		t.Errorf("Row must return an error when there are no results.")
+	if db.RowOrDie(&row, "SELECT * FROM test WHERE test_id = 4") {
+		t.Errorf("there should be no results for test_id = 4.")
 	}
 }
 
