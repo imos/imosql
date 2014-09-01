@@ -4,6 +4,7 @@ import (
 	imosql "./"
 	"encoding/json"
 	"flag"
+	_ "github.com/go-sql-driver/mysql"
 	"reflect"
 	"testing"
 	"time"
@@ -21,7 +22,7 @@ func openDatabase() {
 	}
 	if db == nil {
 		var err error = nil
-		db, err = imosql.GetMysql("root@/test")
+		db, err = imosql.Open("mysql", "root@/test")
 		if err != nil {
 			panic(err)
 		}

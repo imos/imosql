@@ -9,11 +9,15 @@ import (
 
 var isLogging = flag.Bool("imosql_logging", false, "Show SQL queries.")
 
+// SetLogging enables ImoSQL logging if mode is true, otherwise disables ImoSQL
+// logging.
 func SetLogging(mode bool) {
 	isLogging = new(bool)
 	*isLogging = mode
 }
 
+// IsLogging returns true iff ImoSQL logging is enabled.  ImoSQL logging can be
+// enabled by imosql_logging flag.
 func IsLogging() bool {
 	return *isLogging
 }

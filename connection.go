@@ -3,31 +3,33 @@ package imosql
 import (
 	"database/sql"
 	"flag"
-	_ "github.com/go-sql-driver/mysql"
 	"reflect"
 	"time"
 )
 
+// Connection stores a SQL conneciton and provides main utility functions of
+// ImoSQL.
 type Connection struct {
 	sql *sql.DB
 }
 
 var connection *Connection = nil
-var mysqlTarget = flag.String(
-	"mysql", "",
-	"MySQL database to connect "+
-		"(e.g. <user>:<password>@tcp(<host>:<port>)/<database>). This flag "+
-		"overrides the default target.")
+var driverName = flag.String(
+	"driver_name", "mysql", "Specifies a driver name.")
+var dataSourceName = flag.String(
+	"data_source_name", "",
+	"Specifies a driver-specific data source name. This flag overrides the "+
+		"default data source name.")
 
-func GetMysql(target string) (connection *Connection, err error) {
+// Open opens a database specified by its database driver name and a
+// driver-specific data source name, which are the same arguments as
+// the database/sql package uses.
+func Open(defaultDriverName string, defaultDataSourceName string) (connection *Connection, err error) {
 	connection = new(Connection)
-	if *mysqlTarget != "" {
-		connection.sql, err = sql.Open("mysql", *mysqlTarget)
-	} else if target != "" {
-		connection.sql, err = sql.Open("mysql", target)
+	if *dataSourceName != "" {
+		connection.sql, err = sql.Open(*driverName, *dataSourceName)
 	} else {
-		err = errorf("mysql flag or a default target must be specified.")
-		return
+		connection.sql, err = sql.Open(defaultDriverName, defaultDataSourceName)
 	}
 	if err != nil {
 		err = errorf("failed to connect to the databse: %s", err)
@@ -36,11 +38,19 @@ func GetMysql(target string) (connection *Connection, err error) {
 	return
 }
 
+// Ping verifies a connection th the databse is still alive, estabilishing a
+// connecion if necessary.  This function just calls DB.Ping in database/sql.
+func (c *Connection) Ping() error {
+	return c.sql.Ping()
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // No-value query functions
 ////////////////////////////////////////////////////////////////////////////////
 
-// 
+// Execute runs a SQL command using DB.Exec.  When ImoSQL logging is enabled,
+// this function tries to output the last insert ID and the number of affected
+// rows by the query.
 func (c *Connection) Execute(query string, args ...interface{}) (result sql.Result, err error) {
 	printLogf("running a SQL command: %s; %v.", query, args)
 	result, err = c.sql.Exec(query, args...)
@@ -62,6 +72,8 @@ func (c *Connection) Execute(query string, args ...interface{}) (result sql.Resu
 	return
 }
 
+// ExecuteOrDie runs Connection.Execute.  If Connection.Execute fails,
+// ExecuteOrDie panics.
 func (c *Connection) ExecuteOrDie(query string, args ...interface{}) sql.Result {
 	result, err := c.Execute(query, args...)
 	if err != nil {
