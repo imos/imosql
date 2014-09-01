@@ -16,6 +16,7 @@ build: get
 .PHONY: build
 
 get: version
+	go get github.com/go-sql-driver/mysql
 	go get
 .PHONY: get
 
@@ -26,6 +27,9 @@ version:
 format:
 	gofmt -w ./
 .PHONY: format
+
+document:
+	godoc -http=:6060
 
 info:
 	@echo "GOPATH=$${GOPATH}"

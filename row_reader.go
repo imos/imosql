@@ -17,19 +17,19 @@ type RowReader struct {
 
 func NewRowReader(rowsPtr interface{}) (rowReader *RowReader, err error) {
 	if reflect.ValueOf(rowsPtr).Kind() != reflect.Ptr {
-		err = Errorf(
+		err = errorf(
 			"rowsPtr must be a pointer but %s.",
 			reflect.ValueOf(rowsPtr).Kind().String())
 		return
 	}
 	rows := reflect.ValueOf(rowsPtr).Elem()
 	if rows.Kind() != reflect.Slice {
-		err = Errorf("rows must be a slice but %s.", rows.Kind().String())
+		err = errorf("rows must be a slice but %s.", rows.Kind().String())
 		return
 	}
 	rows.SetLen(0)
 	if rows.Type().Elem().Kind() != reflect.Struct {
-		err = Errorf(
+		err = errorf(
 			"rows must be a slice of a struct but a slice of %s.",
 			rows.Type().Elem().Kind().String())
 		return
@@ -39,7 +39,7 @@ func NewRowReader(rowsPtr interface{}) (rowReader *RowReader, err error) {
 	for fieldIndex := 0; fieldIndex < rowType.NumField(); fieldIndex++ {
 		field := rowType.Field(fieldIndex)
 		if field.Tag.Get("sql") == "" {
-			err = Errorf(
+			err = errorf(
 				"every field of a row struct must have a sql tag: %s", field.Name)
 			return
 		}
@@ -55,7 +55,7 @@ func NewRowReader(rowsPtr interface{}) (rowReader *RowReader, err error) {
 
 func (rr *RowReader) SetColumns(columns []string) error {
 	if len(columns) == 0 {
-		return Errorf("# of columns must be >0.")
+		return errorf("# of columns must be >0.")
 	}
 	rr.columnIndexToFieldIndex = []int{}
 	for _, columnName := range columns {
@@ -118,7 +118,7 @@ func parseField(output reflect.Value, input string) error {
 	case reflect.String:
 		output.SetString(input)
 	default:
-		return Errorf("unsupported type: %s.", output.Type().String())
+		return errorf("unsupported type: %s.", output.Type().String())
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func parseField(output reflect.Value, input string) error {
 func (rr *RowReader) ParseFields(
 	fields []interface{}) (row reflect.Value, err error) {
 	if len(fields) != len(rr.columnIndexToFieldIndex) {
-		err = Errorf("len(fields) != len(rr.columnIndexToFieldIndex)")
+		err = errorf("len(fields) != len(rr.columnIndexToFieldIndex)")
 		return
 	}
 	row = reflect.New(rr.rowType)
@@ -149,11 +149,11 @@ func (rr *RowReader) ParseFields(
 
 func (rr *RowReader) Read(rows *sql.Rows, limit int) error {
 	if limit < -1 {
-		return Errorf("limit must be -1 or no less than 0: limit = %d.", limit)
+		return errorf("limit must be -1 or no less than 0: limit = %d.", limit)
 	}
 	numRows := 0
 	if len(rr.columns) == 0 {
-		return Errorf("SetColumns must be called beforehand.")
+		return errorf("SetColumns must be called beforehand.")
 	}
 	fields := make([]interface{}, len(rr.columns))
 	for fieldIndex, _ := range fields {
