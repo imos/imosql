@@ -42,7 +42,7 @@ func GetMysql(target string) (connection *Connection, err error) {
 
 // 
 func (c *Connection) Execute(query string, args ...interface{}) (result sql.Result, err error) {
-	Logf("running a SQL command: %s; %v.", query, args)
+	printLogf("running a SQL command: %s; %v.", query, args)
 	result, err = c.sql.Exec(query, args...)
 	if err != nil {
 		err = errorf("failed to run a SQL command: %s", err)
@@ -51,11 +51,11 @@ func (c *Connection) Execute(query string, args ...interface{}) (result sql.Resu
 	if IsLogging() {
 		insertId, err := result.LastInsertId()
 		if err == nil && insertId != 0 {
-			Logf("last insert ID is %d.", insertId)
+			printLogf("last insert ID is %d.", insertId)
 		}
 		rowsAffected, err := result.RowsAffected()
 		if err == nil {
-			Logf("# of affected rows is %d.", rowsAffected)
+			printLogf("# of affected rows is %d.", rowsAffected)
 		}
 		err = nil
 	}
@@ -97,7 +97,7 @@ func (c *Connection) ChangeOrDie(query string, args ...interface{}) {
 ////////////////////////////////////////////////////////////////////////////////
 
 func (c *Connection) parseSingleValue(result interface{}, query string, args ...interface{}) error {
-	Logf("running a SQL query: %s; %v.", query, args)
+	printLogf("running a SQL query: %s; %v.", query, args)
 	rows, err := c.sql.Query(query, args...)
 	if err != nil {
 		return errorf("failed to run a SQL query: %s", err)
@@ -166,7 +166,7 @@ func (c *Connection) parseRows(rowsPtr interface{}, limit int, query string, arg
 	if err != nil {
 		return errorf("failed to create a RowReader: %s", err)
 	}
-	Logf("running a SQL query: %s; %v.", query, args)
+	printLogf("running a SQL query: %s; %v.", query, args)
 	inputRows, err := c.sql.Query(query, args...)
 	if err != nil {
 		return errorf("failed to run a SQL query: %s", err)

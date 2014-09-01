@@ -18,7 +18,7 @@ func IsLogging() bool {
 	return *isLogging
 }
 
-func Log(a ...interface{}) {
+func printLog(a ...interface{}) {
 	if IsLogging() {
 		message := fmt.Sprint(a...)
 		log.Println(strings.TrimSpace(message))
@@ -26,7 +26,7 @@ func Log(a ...interface{}) {
 	return
 }
 
-func Logf(format string, a ...interface{}) {
+func printLogf(format string, a ...interface{}) {
 	if IsLogging() {
 		message := fmt.Sprintf(format, a...)
 		log.Println(strings.TrimSpace(message))
@@ -36,6 +36,6 @@ func Logf(format string, a ...interface{}) {
 
 func errorf(format string, a ...interface{}) (err error) {
 	err = fmt.Errorf(format, a...)
-	Log(err)
+	printLog(err)
 	return
 }

@@ -12,7 +12,7 @@ func (c *Connection) CurrentTime() time.Time {
 		timeGapInNanoseconds = new(int64)
 		*timeGapInNanoseconds =
 			time.Now().UnixNano() - c.TimeOrDie("SELECT UTC_TIMESTAMP()").UnixNano()
-		Logf("the current time gap is %d ms.", *timeGapInNanoseconds/1000000)
+		printLogf("the current time gap is %d ms.", *timeGapInNanoseconds/1000000)
 		lastAdjustTime = time.Now().Unix()
 	}
 	return time.Unix(0, time.Now().UnixNano()-*timeGapInNanoseconds)
