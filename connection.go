@@ -219,8 +219,8 @@ func (c *Connection) Row(rowPtr interface{}, query string, args ...interface{}) 
 	return nil
 }
 
-func (c *Connection) RowsOrDie(rows interface{}, query string, args ...interface{}) {
-	err := c.Rows(rows, query, args...)
+func (c *Connection) RowsOrDie(rowsPtr interface{}, query string, args ...interface{}) {
+	err := c.Rows(rowsPtr, query, args...)
 	if err != nil {
 		panic(err)
 	}
