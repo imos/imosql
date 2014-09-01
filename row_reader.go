@@ -123,15 +123,13 @@ func parseField(output reflect.Value, input string) error {
 	return nil
 }
 
-func (rr *RowReader) ParseFields(
-	fields []interface{}) (row reflect.Value, err error) {
+func (rr *RowReader) ParseFields(fields []sql.NullString) (row reflect.Value, err error) {
 	if len(fields) != len(rr.columnIndexToFieldIndex) {
 		err = errorf("len(fields) != len(rr.columnIndexToFieldIndex)")
 		return
 	}
 	row = reflect.New(rr.rowType)
-	for columnIndex, fieldValueInterface := range fields {
-		fieldValue := fieldValueInterface.(*sql.NullString)
+	for columnIndex, fieldValue := range fields {
 		if !fieldValue.Valid {
 			continue
 		}
@@ -155,16 +153,17 @@ func (rr *RowReader) Read(rows *sql.Rows, limit int) error {
 	if len(rr.columns) == 0 {
 		return errorf("SetColumns must be called beforehand.")
 	}
-	fields := make([]interface{}, len(rr.columns))
+	fields := make([]sql.NullString, len(rr.columns))
+	interfaceFields := make([]interface{}, len(fields))
 	for fieldIndex, _ := range fields {
-		fields[fieldIndex] = new(sql.NullString)
+		interfaceFields[fieldIndex] = &fields[fieldIndex]
 	}
 	for rows.Next() {
 		if numRows == limit {
 			break
 		}
 		numRows++
-		if err := rows.Scan(fields...); err != nil {
+		if err := rows.Scan(interfaceFields...); err != nil {
 			return err
 		}
 		row, err := rr.ParseFields(fields)

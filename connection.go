@@ -48,9 +48,11 @@ func (c *Connection) Ping() error {
 // No-value query functions
 ////////////////////////////////////////////////////////////////////////////////
 
-// Execute runs a SQL command using DB.Exec.  When ImoSQL logging is enabled,
-// this function tries to output the last insert ID and the number of affected
-// rows by the query.
+// Execute runs a SQL command using DB.Exec.  This is primitive and returns
+// sql.Result, which is returned by DB.Exec.  If sql.Result is not necessary,
+// Connection.Change or Connection.Command should be used instead.  When ImoSQL
+// logging is enabled, this function tries to output the last insert ID and the
+// number of affected rows by the query.
 func (c *Connection) Execute(query string, args ...interface{}) (result sql.Result, err error) {
 	printLogf("running a SQL command: %s; %v.", query, args)
 	result, err = c.sql.Exec(query, args...)
@@ -82,6 +84,25 @@ func (c *Connection) ExecuteOrDie(query string, args ...interface{}) sql.Result 
 	return result
 }
 
+// Command runs a SQL command.
+func (c *Connection) Command(query string, args ...interface{}) error {
+	_, err := c.Execute(query, args...)
+	return err
+}
+
+// CommandOrDie runs Connection.Command.  If Connection.Command fails, this
+// function panics.
+func (c *Connection) CommandOrDie(query string, args ...interface{}) {
+	err := c.Command(query, args...)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Change runs a SQL command changing a SQL table.  If the command changes
+// nothing, Change returns an error.  Be careful that UPDATE, which is a SQL
+// command, may change nothing even if it matches some rows if it results in
+// changing nothing.
 func (c *Connection) Change(query string, args ...interface{}) error {
 	result, err := c.Execute(query, args...)
 	if err != nil {
@@ -97,6 +118,8 @@ func (c *Connection) Change(query string, args ...interface{}) error {
 	return nil
 }
 
+// ChangeOrDie runs Connection.Change.  If Connection.Change fails, this
+// function panics.
 func (c *Connection) ChangeOrDie(query string, args ...interface{}) {
 	err := c.Change(query, args...)
 	if err != nil {
@@ -202,33 +225,41 @@ func (c *Connection) Rows(rowsPtr interface{}, query string, args ...interface{}
 	return c.parseRows(rowsPtr, -1, query, args...)
 }
 
-func (c *Connection) Row(rowPtr interface{}, query string, args ...interface{}) error {
+// Row fills rowPtr with a result for a given SQL query.  This function returns
+// true iff there is at least one results, otherwise returns false.
+func (c *Connection) Row(rowPtr interface{}, query string, args ...interface{}) (found bool, err error) {
 	if reflect.ValueOf(rowPtr).Type().Kind() != reflect.Ptr {
-		return errorf(
+		err = errorf(
 			"rowPtr must be a pointer, but %s.",
 			reflect.ValueOf(rowPtr).Type().Kind())
+		return
 	}
 	rowsPtr := reflect.New(reflect.SliceOf(reflect.ValueOf(rowPtr).Type().Elem()))
-	if err := c.parseRows(rowsPtr.Interface(), 1, query, args...); err != nil {
-		return err
+	err = c.parseRows(rowsPtr.Interface(), 1, query, args...)
+	if err != nil {
+		return
 	}
-	if rowsPtr.Elem().Len() != 1 {
-		return errorf("# of results must be 1, but %d.", rowsPtr.Elem().Len())
+	if rowsPtr.Elem().Len() == 1 {
+		reflect.ValueOf(rowPtr).Elem().Set(rowsPtr.Elem().Index(0))
+		found = true
 	}
-	reflect.ValueOf(rowPtr).Elem().Set(rowsPtr.Elem().Index(0))
-	return nil
+	return
 }
 
-func (c *Connection) RowsOrDie(rows interface{}, query string, args ...interface{}) {
-	err := c.Rows(rows, query, args...)
+func (c *Connection) RowsOrDie(rowsPtr interface{}, query string, args ...interface{}) {
+	err := c.Rows(rowsPtr, query, args...)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (c *Connection) RowOrDie(rowPtr interface{}, query string, args ...interface{}) {
-	err := c.Row(rowPtr, query, args...)
+// RowOrDie runs Connection.Row. If Connection.Row fails, this function panics.
+// This function returns true iff there is at least one results, otherwise
+// returns false.
+func (c *Connection) RowOrDie(rowPtr interface{}, query string, args ...interface{}) bool {
+	found, err := c.Row(rowPtr, query, args...)
 	if err != nil {
 		panic(err)
 	}
+	return found
 }
