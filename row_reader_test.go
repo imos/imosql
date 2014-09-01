@@ -23,11 +23,11 @@ func parseField(rowReader *imosql.RowReader, input string, fieldName string) (
 	output string, err error) {
 	var rowReflection reflect.Value
 	if input == "NULL" {
-		rowReflection, err = rowReader.ParseFields([]interface{}{
-			&sql.NullString{String: "", Valid: false}})
+		rowReflection, err = rowReader.ParseFields([]sql.NullString{
+			sql.NullString{String: "", Valid: false}})
 	} else {
-		rowReflection, err = rowReader.ParseFields([]interface{}{
-			&sql.NullString{String: input, Valid: true}})
+		rowReflection, err = rowReader.ParseFields([]sql.NullString{
+			sql.NullString{String: input, Valid: true}})
 	}
 	if err != nil {
 		return
