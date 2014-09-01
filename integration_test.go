@@ -1,7 +1,7 @@
 package imosql_test
 
 import (
-	imosql "./"
+	imosql "."
 	"encoding/json"
 	"flag"
 	_ "github.com/go-sql-driver/mysql"

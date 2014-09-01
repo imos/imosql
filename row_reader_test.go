@@ -1,7 +1,7 @@
 package imosql_test
 
 import (
-	. "./"
+	imosql "."
 	"database/sql"
 	"encoding/json"
 	"reflect"
@@ -19,7 +19,7 @@ type RowExample struct {
 	Datetime  time.Time `sql:"row_datetime"`
 }
 
-func parseField(rowReader *RowReader, input string, fieldName string) (
+func parseField(rowReader *imosql.RowReader, input string, fieldName string) (
 	output string, err error) {
 	var rowReflection reflect.Value
 	if input == "NULL" {
@@ -45,7 +45,7 @@ func testParseFields(
 	t *testing.T, columnName string, fieldName string,
 	testCases map[string]string) {
 	rows := []RowExample{}
-	rowReader, err := NewRowReader(&rows)
+	rowReader, err := imosql.NewRowReader(&rows)
 	if err != nil {
 		t.Error("failed to create a RowReader:", err)
 	}
