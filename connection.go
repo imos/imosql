@@ -35,6 +35,15 @@ func Open(defaultDriverName string, defaultDataSourceName string) (connection *C
 		err = errorf("failed to connect to the databse: %s", err)
 		return
 	}
+	if connection.sql == nil {
+		err = errorf("there is no connection to the databse.")
+		return
+	}
+	err = connection.Ping()
+	if err != nil {
+		err = errorf("failed to ping: %s", err)
+		return
+	}
 	return
 }
 
@@ -132,6 +141,11 @@ func (c *Connection) ChangeOrDie(query string, args ...interface{}) {
 ////////////////////////////////////////////////////////////////////////////////
 
 func (c *Connection) parseSingleValue(result interface{}, query string, args ...interface{}) error {
+	if reflect.TypeOf(result).Kind() != reflect.Ptr {
+		return errorf(
+			"result must be a pointer but %s.",
+			reflect.TypeOf(result).Kind().String())
+	}
 	printLogf("running a SQL query: %s; %v.", query, args)
 	rows, err := c.sql.Query(query, args...)
 	if err != nil {
@@ -139,7 +153,13 @@ func (c *Connection) parseSingleValue(result interface{}, query string, args ...
 	}
 	defer rows.Close()
 	if !rows.Next() {
-		return errorf("no result.")
+		if reflect.TypeOf(result).Elem().Kind() == reflect.Ptr {
+			reflect.ValueOf(result).Elem().Set(
+				reflect.ValueOf(nil).Convert(reflect.TypeOf(result).Elem()))
+			return nil
+		} else {
+			return errorf("no result.")
+		}
 	}
 	var stringResult string
 	err = rows.Scan(&stringResult)
